@@ -3,47 +3,69 @@
 <head>
     <title>Bergara Guessr - PWA</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="theme-color" content="#e67e22">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        /* (Se mantiene tu estilo original) */
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; background: #000; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; background: #000; }
         #street-view { height: 100vh; width: 100vw; position: absolute; z-index: 1; }
-        #map-container { position: absolute; bottom: 20px; right: 20px; width: 500px; height: 400px; z-index: 10; transition: all 0.3s ease-in-out; border: 4px solid white; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); background: white; overflow: hidden; }
-        #map-container.fullscreen { width: 90vw; height: 85vh; bottom: 5vh; right: 5vw; }
+        
+        #map-container { 
+            position: absolute; bottom: 20px; right: 20px; 
+            width: 300px; height: 250px; z-index: 10; 
+            transition: all 0.3s ease-in-out; border: 4px solid white; 
+            border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); 
+            background: white; overflow: hidden; 
+        }
+        #map-container.fullscreen { width: 90vw; height: 70vh; bottom: 5vh; right: 5vw; }
         #map { width: 100%; height: 100%; }
+        
         #toggle-map { position: absolute; top: 10px; left: 10px; z-index: 11; background: rgba(255,255,255,0.9); border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        #confirm-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 12; background: #27ae60; color: white; border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 18px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-transform: uppercase; }
-        #ui { position: absolute; top: 20px; left: 20px; z-index: 20; background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); min-width: 250px; border-left: 6px solid #e67e22; }
-        .main-btn { background: #e67e22; color: white; border: none; padding: 15px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 16px; display: block; text-align: center; text-decoration: none; }
+        #confirm-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 12; background: #27ae60; color: white; border: none; padding: 12px 24px; border-radius: 30px; cursor: pointer; font-weight: bold; font-size: 18px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        
+        #ui { position: absolute; top: 20px; left: 20px; z-index: 20; background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 220px; border-left: 6px solid #e67e22; }
+        .main-btn { background: #e67e22; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 14px; display: block; text-align: center; text-decoration: none; }
+        
+        /* Estilos del Ranking Dinámico */
+        #ranking-lista { margin-top: 10px; background: #fff; border-radius: 8px; max-height: 150px; overflow-y: auto; font-size: 13px; border: 1px solid #eee; }
+        .rank-item { display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid #eee; }
+        .rank-item:last-child { border: none; }
+        .gold { color: #d4af37; font-weight: bold; }
+
+        @media (max-width: 600px) {
+            #map-container { width: 150px; height: 150px; }
+            #ui { width: 180px; padding: 10px; }
+        }
     </style>
 </head>
 <body>
     <div id="street-view"></div>
+    
     <div id="map-container">
-        <button id="toggle-map" onclick="toggleMapSize()">⤢ Pantalla Completa</button>
+        <button id="toggle-map" onclick="toggleMapSize()">⤢ Pantalla</button>
         <div id="map"></div>
         <button id="confirm-btn" onclick="confirmGuess()">Confirmar Ubicación</button>
     </div>
+
     <div id="ui">
         <div id="round-label" style="font-weight:bold; color:#666;">Ronda 1 / 3</div>
-        <div id="timer" style="font-size:22px; color:#dc3545; font-weight:bold;">Tiempo: 0.0s</div>
-        <div id="score" style="font-size:28px; font-weight:bold;">Total: 0</div>
-        <div id="distance" style="color:#666; font-size:14px; margin-bottom:10px;">Busca el sitio en Bergara</div>
+        <div id="timer" style="font-size:18px; color:#dc3545; font-weight:bold;">Tiempo: 0.0s</div>
+        <div id="score" style="font-size:24px; font-weight:bold;">Total: 0</div>
+        <div id="distance" style="color:#666; font-size:12px; margin-bottom:10px;">Busca el sitio en Bergara</div>
+        
         <button id="action-btn" class="main-btn" onclick="spawnRandomLocation()" style="display:none;">Siguiente Ronda</button>
-        <div id="ranking-container"></div>
+        
+        <div id="ranking-container">
+            <h4 style="margin: 10px 0 5px 0; font-size: 14px;">Top 10 Bergara</h4>
+            <div id="ranking-lista">Cargando clasificación...</div>
+        </div>
     </div>
 
     <script>
-        // --- AQUÍ ESTÁ EL ACTIVADOR DEL SERVICE WORKER ---
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registrado con éxito:', reg.scope))
-                    .catch(err => console.log('Error al registrar el Service Worker:', err));
-            });
-        }
+        // CONFIGURACIÓN GLOBAL
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz9AQQpD0Js18177u3WFglgn6Uk3-fJ4FES1QR2gkoDN4HFvLSQ2qCMLIf0zBVpluAJ/exec";
+        const SHEET_ID = "1yBRWSFIp_P73DiV-lhfJ_uu4FUAvsgz-tFd1-Vb2-oU"; 
 
-        // (Se mantiene toda tu lógica de juego original de index.html)
         let panorama, map, marker, targetMarker, targetLocation, line;
         let totalScore = 0, currentRound = 1, startTime, timerInterval;
         let totalDistance = 0, totalTime = 0;
@@ -61,18 +83,17 @@
             map.addListener("click", (e) => {
                 if (hasGuessed) return;
                 lastClickedLatLng = e.latLng;
-                if (marker) { marker.setMap(null); } 
+                if (marker) marker.setMap(null);
                 marker = new google.maps.Marker({ position: lastClickedLatLng, map: map, label: "TÚ" });
                 document.getElementById("confirm-btn").style.display = "block";
             });
             spawnRandomLocation();
+            actualizarRankingVisual();
         }
 
         function toggleMapSize() {
             const container = document.getElementById("map-container");
-            const btn = document.getElementById("toggle-map");
             container.classList.toggle("fullscreen");
-            btn.innerText = container.classList.contains("fullscreen") ? "⤫ Minimizar" : "⤢ Pantalla Completa";
             google.maps.event.trigger(map, "resize");
         }
 
@@ -108,11 +129,8 @@
             clearInterval(timerInterval);
             const timeRound = (Date.now() - startTime) / 1000;
             document.getElementById("confirm-btn").style.display = "none";
-            if(document.getElementById("map-container").classList.contains("fullscreen")) toggleMapSize();
             
-            targetMarker = new google.maps.Marker({ 
-                position: targetLocation, map: map, label: "OK", icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
-            });
+            targetMarker = new google.maps.Marker({ position: targetLocation, map: map, label: "OK" });
             line = new google.maps.Polyline({ path: [lastClickedLatLng, targetLocation], strokeColor: "#FF0000", strokeWeight: 3, map: map });
 
             const dist = google.maps.geometry.spherical.computeDistanceBetween(lastClickedLatLng, targetLocation);
@@ -123,43 +141,64 @@
             totalTime += timeRound;
             
             document.getElementById("score").innerText = `Total: ${totalScore}`;
-            document.getElementById("distance").innerText = `+${pts} pts (${dist.toFixed(0)}m en ${timeRound.toFixed(1)}s)`;
+            document.getElementById("distance").innerText = `+${pts} pts (${dist.toFixed(0)}m)`;
             
             const btn = document.getElementById("action-btn");
             btn.style.display = "block";
             
             if (currentRound === MAX_ROUNDS) {
-                btn.innerText = "ENVIAR PUNTUACIÓN";
+                btn.innerText = "FINALIZAR Y GUARDAR";
                 btn.style.background = "#27ae60";
                 btn.onclick = () => {
-                    const formID = "1FAIpQLSf8XQVkzDrBxCG-6fivWlgm9d_T26EgsKSZzpBXpsD7vrYaMg";
-                    const idPuntos = "1166392297";
-                    const idDistancia = "606242080";
-                    const idTiempo = "1955371500";
-                    
-                    const url = `https://docs.google.com/forms/d/e/${formID}/viewform?usp=pp_url` +
-                                `&entry.${idPuntos}=${totalScore}` +
-                                `&entry.${idDistancia}=${totalDistance.toFixed(0)}` +
-                                `&entry.${idTiempo}=${totalTime.toFixed(1)}`;
-                    
-                    window.open(url, '_blank');
-                    mostrarBotonRanking();
+                    let nombre = prompt("¡Fin del juego! Introduce tu nombre para el ranking:", "Jugador");
+                    if(nombre) enviarPuntuacion(nombre);
                 };
             } else { currentRound++; btn.innerText = "Siguiente Ronda"; }
         }
 
-        function mostrarBotonRanking() {
-            const container = document.getElementById("ranking-container");
-            if (!document.getElementById("rank-btn")) {
-                const rBtn = document.createElement("button");
-                rBtn.id = "rank-btn";
-                rBtn.className = "main-btn";
-                rBtn.style.background = "#3498db";
-                rBtn.innerText = "VER CLASIFICACIÓN";
-                rBtn.onclick = () => {
-                    window.open("https://docs.google.com/spreadsheets/d/e/2PACX-1vTZuZdTXwry0KUyxTbgWwtUt29I9FXRWEGwieQP8rH09DYeA3IyppYphMAlise3Vre6I8DUlBjGxp2c/pubhtml?gid=1216099204&single=true", "_blank");
-                };
-                container.appendChild(rBtn);
+        async function enviarPuntuacion(nombre) {
+            const btn = document.getElementById("action-btn");
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            const datos = new URLSearchParams();
+            datos.append("nombre", nombre);
+            datos.append("puntos", totalScore);
+            datos.append("distancia", totalDistance.toFixed(0));
+            datos.append("tiempo", totalTime.toFixed(1));
+
+            try {
+                // Envío mediante POST al script de Google
+                await fetch(SCRIPT_URL, { method: 'POST', body: datos, mode: 'no-cors' });
+                btn.innerText = "¡PUNTOS GUARDADOS!";
+                btn.style.background = "#3498db";
+                // Esperamos un poco y refrescamos el ranking visual
+                setTimeout(actualizarRankingVisual, 2000);
+            } catch (e) {
+                alert("Error al guardar puntuación.");
+                btn.disabled = false;
+                btn.innerText = "REINTENTAR";
+            }
+        }
+
+        async function actualizarRankingVisual() {
+            // Consulta a la pestaña "Top 10" del Google Sheets
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Top%2010`;
+            try {
+                const res = await fetch(url);
+                const text = await res.text();
+                const json = JSON.parse(text.substr(47).slice(0, -2));
+                const filas = json.table.rows;
+                let html = "";
+                filas.forEach((f, i) => {
+                    let n = f.c[0] ? f.c[0].v : "---";
+                    let p = f.c[1] ? f.c[1].v : "0";
+                    let icon = i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}.`;
+                    html += `<div class="rank-item"><span>${icon} ${n}</span><span class="gold">${p}</span></div>`;
+                });
+                document.getElementById("ranking-lista").innerHTML = html;
+            } catch (e) {
+                document.getElementById("ranking-lista").innerHTML = "Error al cargar clasificación.";
             }
         }
     </script>
